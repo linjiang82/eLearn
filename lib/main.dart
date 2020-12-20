@@ -1,10 +1,14 @@
 import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'courses.dart';
+import './models/user.dart';
+import './UI/profile.dart';
+import './UI/signIn.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+final storage = FlutterSecureStorage();
 
 void main() {
-  print('mainin');
   runApp(MyApp());
 }
 
@@ -32,29 +36,38 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void initState() {
-    log('haha');
-    fetchCourses();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'ounter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+        appBar: AppBar(
+          title: Text(widget.title),
+          leading: FlatButton(
+            child: Text('Signin'),
+            onPressed: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Signin()));
+            },
+          ),
         ),
-      ),
-    );
+        body: FutureBuilder<List<User>>(
+          future: fetchUser(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError)
+              print(snapshot.error);
+            else if (snapshot.hasData) {
+              return Center(
+                child: ListView.builder(
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Profile(user: snapshot.data[index]);
+                  },
+                ),
+              );
+            }
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ));
   }
 }
